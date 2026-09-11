@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Локальный ИИ-протоколист с транскрибацией, диаризацией и проверяемыми фактами"
+    />
+    <title>AI Meeting Intelligence</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="AI Meeting Intelligence">
+        <span class="brand-mark" aria-hidden="true">
+          <span></span><span></span><span></span><span></span><span></span>
+        </span>
+        <span>
+          <strong>Meeting Intelligence</strong>
+          <small>Local AI protocol</small>
+        </span>
+      </a>
+      <div class="runtime">
+        <span class="status-dot" id="status-dot"></span>
+        <span id="runtime-status">Проверяем локальные модели...</span>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <div class="eyebrow">100% OFFLINE · SELF-HOSTED</div>
+          <h1>Совещание превращается<br />в <span>проверяемый протокол</span></h1>
+          <p>
+            Расшифровка по спикерам, ключевые факты, решения и поручения —
+            без отправки аудио во внешние сервисы.
+          </p>
+        </div>
+        <div class="privacy-card">
+          <div class="shield">✓</div>
+          <div>
+            <strong>Данные остаются у вас</strong>
+            <span>Faster-Whisper · pyannote · Qwen через Ollama</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="workspace">
+        <article class="panel upload-panel">
+          <div class="panel-heading">
+            <div>
+              <span class="step">01</span>
+              <h2>Новая встреча</h2>
+            </div>
+            <span class="local-chip">Локально</span>
+          </div>
+
+          <form id="meeting-form">
+            <label class="field">
+              <span>Название</span>
+              <input id="title" name="title" placeholder="Например, планирование спринта" />
+            </label>
+
+            <label class="field">
+              <span>Количество участников <em>необязательно</em></span>
+              <input
+                id="num-speakers"
+                name="num_speakers"
+                type="number"
+                min="1"
+                max="20"
+                placeholder="Определить автоматически"
+              />
+            </label>
+
+            <label class="dropzone" id="dropzone" for="audio-file">
+              <input
+                id="audio-file"
+                name="file"
+                type="file"
+                accept=".mp3,.wav,.m4a,.txt"
+                required
+              />
+              <span class="upload-icon">↑</span>
+              <strong id="file-label">Перетащите запись сюда</strong>
+              <span>или нажмите, чтобы выбрать файл</span>
+              <small>MP3, WAV, M4A или готовый TXT-транскрипт</small>
+            </label>
+
+            <button class="primary-button" id="submit-button" type="submit">
+              <span>Создать протокол</span>
+              <b>→</b>
+            </button>
+          </form>
+
+          <div class="progress-card hidden" id="progress-card" aria-live="polite">
+            <div class="progress-meta">
+              <strong id="progress-stage">Подготовка...</strong>
+              <span id="progress-value">0%</span>
+            </div>
+            <div class="progress-track"><div id="progress-bar"></div></div>
+            <small>Файл обрабатывается только на этом устройстве</small>
+          </div>
+
+          <div class="error-card hidden" id="error-card"></div>
+        </article>
+
+        <article class="panel preview-panel" id="empty-preview">
+          <div class="empty-visual" aria-hidden="true">
+            <span class="wave w1"></span><span class="wave w2"></span>
+            <span class="wave w3"></span><span class="wave w4"></span>
+            <span class="wave w5"></span><span class="wave w6"></span>
+            <span class="wave w7"></span><span class="wave w8"></span>
+            <span class="wave w9"></span>
+          </div>
+          <h2>Здесь появится результат</h2>
+          <p>Каждый вывод будет связан с исходной репликой и таймкодом.</p>
+          <div class="preview-list">
+            <span><b>01</b> Краткая выжимка</span>
+            <span><b>02</b> Решения и поручения</span>
+            <span><b>03</b> Ключевые факты</span>
+          </div>
+        </article>
+      </section>
+
+      <section class="results hidden" id="results">
+        <div class="results-header">
+          <div>
+            <span class="step">02</span>
+            <p class="muted">Готовый протокол</p>
+            <h2 id="result-title">Встреча</h2>
+            <div class="metadata" id="metadata"></div>
+          </div>
+          <div class="export-buttons">
+            <button data-export="pdf">PDF</button>
+            <button data-export="csv">CSV</button>
+            <button data-export="json">JSON</button>
+          </div>
+        </div>
+
+        <nav class="tabs" aria-label="Разделы протокола">
+          <button class="active" data-tab="overview">Обзор</button>
+          <button data-tab="actions">Поручения</button>
+          <button data-tab="transcript">Транскрипт</button>
+        </nav>
+
+        <div class="tab-page active" id="tab-overview">
+          <div class="result-grid">
+            <section class="result-card summary-card">
+              <div class="result-card-title"><span>✦</span><h3>Краткая выжимка</h3></div>
+              <div id="summary-list" class="finding-list"></div>
+            </section>
+            <section class="result-card">
+              <div class="result-card-title"><span>◆</span><h3>Ключевые факты</h3></div>
+              <div id="facts-list" class="finding-list"></div>
+            </section>
+            <section class="result-card">
+              <div class="result-card-title"><span>✓</span><h3>Принятые решения</h3></div>
+              <div id="decisions-list" class="finding-list"></div>
+            </section>
+            <section class="result-card">
+              <div class="result-card-title"><span>?</span><h3>Открытые вопросы</h3></div>
+              <div id="questions-list" class="finding-list"></div>
+            </section>
+            <section class="result-card wide-card">
+              <div class="result-card-title"><span>!</span><h3>Риски и блокеры</h3></div>
+              <div id="risks-list" class="finding-list"></div>
+            </section>
+          </div>
+        </div>
+
+        <div class="tab-page" id="tab-actions">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Ответственный</th><th>Задача</th><th>Срок</th><th>Приоритет</th><th>Источник</th>
+                </tr>
+              </thead>
+              <tbody id="actions-table"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="tab-page" id="tab-transcript">
+          <div class="transcript-toolbar">
+            <span>Нажмите на источник возле факта, чтобы перейти к реплике.</span>
+          </div>
+          <div class="transcript" id="transcript-list"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>AI Meeting Intelligence</span>
+      <span>Ни одного внешнего API · Данные не покидают устройство</span>
+    </footer>
+
+    <script src="/static/app.js" defer></script>
+  </body>
+</html>
+
