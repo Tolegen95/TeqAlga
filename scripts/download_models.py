@@ -7,6 +7,17 @@ import subprocess
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+OFFLINE_ENVIRONMENT_VARIABLES = (
+    "HF_HUB_OFFLINE",
+    "TRANSFORMERS_OFFLINE",
+    "HF_DATASETS_OFFLINE",
+)
+
+
+def enable_model_downloads() -> None:
+    """Ensure a previous offline app session cannot block model preparation."""
+    for variable in OFFLINE_ENVIRONMENT_VARIABLES:
+        os.environ.pop(variable, None)
 
 
 def download_whisper(model: str, root: Path) -> None:
@@ -66,6 +77,7 @@ def main() -> None:
 
     if not any((args.whisper, args.diarization, args.ollama)):
         parser.error("Choose at least one of --whisper, --diarization, or --ollama")
+    enable_model_downloads()
     if args.whisper:
         download_whisper(args.whisper, PROJECT_ROOT / "models/whisper")
     if args.diarization:
