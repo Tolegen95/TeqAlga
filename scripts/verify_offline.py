@@ -20,8 +20,8 @@ def main() -> int:
     checks.append(
         (
             "pyannote Community-1",
-            settings.diarization_model_path.exists(),
-            "local model folder",
+            (settings.diarization_model_path / "config.yaml").is_file(),
+            "local config.yaml",
         )
     )
     checks.append(

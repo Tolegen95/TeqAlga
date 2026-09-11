@@ -62,6 +62,9 @@ export HF_TOKEN="ваш_бесплатный_Hugging_Face_токен"
 python scripts/download_models.py --whisper large-v3 --diarization --ollama qwen3:8b
 ```
 
+Скрипт всегда сохраняет модели в папку `models` внутри проекта, даже если он был
+вызван из другой рабочей папки.
+
 Для `pyannote Community-1` сначала примите условия модели на Hugging Face.
 Токен нужен только для скачивания и не сохраняется приложением.
 

@@ -48,9 +48,12 @@ def diarize(
 ) -> list[SpeakerTurn]:
     if not settings.diarization_enabled:
         return []
-    if not settings.diarization_model_path.exists():
+    config_path = settings.diarization_model_path / "config.yaml"
+    if not config_path.is_file():
         raise DiarizationError(
-            "Local pyannote model not found. Run scripts/download_models.py first."
+            "Local pyannote model is missing or incomplete: config.yaml was not found "
+            f"at {config_path.resolve()}. Run scripts/download_models.py --diarization "
+            "from the updated repository."
         )
 
     try:

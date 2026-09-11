@@ -6,6 +6,8 @@ import shutil
 import subprocess
 from pathlib import Path
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
 
 def download_whisper(model: str, root: Path) -> None:
     try:
@@ -38,7 +40,13 @@ def download_diarization(destination: Path) -> None:
         local_dir=destination,
         token=token,
     )
-    print("Diarization model is ready")
+    config_path = destination / "config.yaml"
+    if not config_path.is_file():
+        raise SystemExit(
+            "Diarization download is incomplete: config.yaml was not created at "
+            f"{config_path.resolve()}"
+        )
+    print(f"Diarization model is ready: {config_path.resolve()}")
 
 
 def download_ollama(model: str) -> None:
@@ -59,13 +67,14 @@ def main() -> None:
     if not any((args.whisper, args.diarization, args.ollama)):
         parser.error("Choose at least one of --whisper, --diarization, or --ollama")
     if args.whisper:
-        download_whisper(args.whisper, Path("models/whisper"))
+        download_whisper(args.whisper, PROJECT_ROOT / "models/whisper")
     if args.diarization:
-        download_diarization(Path("models/pyannote-speaker-diarization-community-1"))
+        download_diarization(
+            PROJECT_ROOT / "models/pyannote-speaker-diarization-community-1"
+        )
     if args.ollama:
         download_ollama(args.ollama)
 
 
 if __name__ == "__main__":
     main()
-

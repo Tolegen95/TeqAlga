@@ -52,7 +52,9 @@ def health() -> dict[str, object]:
         "ffmpeg": shutil.which("ffmpeg") is not None,
         "ollama": ollama_ready,
         "ollama_model": settings.ollama_model,
-        "diarization_model": settings.diarization_model_path.exists(),
+        "diarization_model": (
+            settings.diarization_model_path / "config.yaml"
+        ).is_file(),
     }
 
 
