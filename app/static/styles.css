@@ -29,7 +29,7 @@ body {
   color: var(--text);
 }
 
-button, input { font: inherit; }
+button, input, select { font: inherit; }
 
 button { cursor: pointer; }
 
@@ -95,9 +95,10 @@ main { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
 .field { display: block; margin-bottom: 17px; }
 .field > span { display: flex; justify-content: space-between; color: #c6d7de; font-size: 12px; margin: 0 0 8px 2px; }
 .field em { color: var(--muted); font-style: normal; font-size: 10px; }
-.field input { width: 100%; color: var(--text); background: rgba(4, 15, 22, 0.7); border: 1px solid var(--line); border-radius: 12px; padding: 13px 14px; outline: none; transition: border-color .2s, box-shadow .2s; }
-.field input:focus { border-color: rgba(61, 214, 207, 0.65); box-shadow: 0 0 0 3px rgba(61, 214, 207, 0.08); }
+.field input, .field select { width: 100%; color: var(--text); background: rgba(4, 15, 22, 0.7); border: 1px solid var(--line); border-radius: 12px; padding: 13px 14px; outline: none; transition: border-color .2s, box-shadow .2s; }
+.field input:focus, .field select:focus { border-color: rgba(61, 214, 207, 0.65); box-shadow: 0 0 0 3px rgba(61, 214, 207, 0.08); }
 .field input::placeholder { color: #5f7781; }
+.field select option { color: var(--text); background: #102330; }
 
 .dropzone { min-height: 177px; border: 1px dashed rgba(61, 214, 207, 0.33); border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; background: rgba(22, 70, 78, 0.08); transition: .2s ease; }
 .dropzone:hover, .dropzone.dragging { border-color: var(--cyan); background: rgba(61, 214, 207, 0.08); transform: translateY(-1px); }
@@ -200,4 +201,3 @@ footer { width: min(1180px, calc(100% - 40px)); margin: 45px auto 0; min-height:
   .segment { grid-template-columns: 1fr; gap: 4px; }
   footer { flex-direction: column; align-items: flex-start; justify-content: center; gap: 7px; }
 }
-

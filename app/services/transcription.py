@@ -52,17 +52,41 @@ def transcribe(audio_path: Path, settings: Settings) -> tuple[list[TranscriptSeg
             word_timestamps=True,
             condition_on_previous_text=True,
         )
-        segments = [
-            TranscriptSegment(
-                id=f"seg_{index:04d}",
-                start=float(segment.start),
-                end=float(segment.end),
-                speaker="Speaker 1",
-                text=segment.text.strip(),
-            )
-            for index, segment in enumerate(raw_segments, start=1)
-            if segment.text.strip()
-        ]
+        # Keep word timestamps instead of throwing them away. Speaker turns often
+        # change in the middle of a Whisper sentence, so sentence-level alignment
+        # assigns several people to one speaker. The alignment service groups these
+        # words back into readable utterances after diarization.
+        segments: list[TranscriptSegment] = []
+        for raw_segment in raw_segments:
+            words = getattr(raw_segment, "words", None) or []
+            word_count_before = len(segments)
+            for word in words:
+                text = str(getattr(word, "word", "")).strip()
+                if not text:
+                    continue
+                start = getattr(word, "start", None)
+                end = getattr(word, "end", None)
+                segments.append(
+                    TranscriptSegment(
+                        id=f"word_{len(segments) + 1:06d}",
+                        start=float(raw_segment.start if start is None else start),
+                        end=float(raw_segment.end if end is None else end),
+                        speaker="Speaker 1",
+                        text=text,
+                    )
+                )
+
+            # Defensive fallback for engines/files that do not expose word timings.
+            if len(segments) == word_count_before and raw_segment.text.strip():
+                segments.append(
+                    TranscriptSegment(
+                        id=f"word_{len(segments) + 1:06d}",
+                        start=float(raw_segment.start),
+                        end=float(raw_segment.end),
+                        speaker="Speaker 1",
+                        text=raw_segment.text.strip(),
+                    )
+                )
         del model
         gc.collect()
         if device == "cuda":

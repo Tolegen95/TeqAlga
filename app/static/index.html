@@ -66,15 +66,25 @@
             </label>
 
             <label class="field">
-              <span>Количество участников <em>необязательно</em></span>
+              <span>Количество говоривших <em>лучше указать точно</em></span>
               <input
                 id="num-speakers"
                 name="num_speakers"
                 type="number"
                 min="1"
                 max="20"
-                placeholder="Определить автоматически"
+                placeholder="Например, 5"
               />
+            </label>
+
+            <label class="field">
+              <span>Язык итогового отчёта</span>
+              <select id="report-language" name="report_language">
+                <option value="ru" selected>Русский</option>
+                <option value="kk">Қазақша</option>
+                <option value="en">English</option>
+                <option value="auto">Как в записи</option>
+              </select>
             </label>
 
             <label class="dropzone" id="dropzone" for="audio-file">
@@ -203,4 +213,3 @@
     <script src="/static/app.js" defer></script>
   </body>
 </html>
-

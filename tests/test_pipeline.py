@@ -12,7 +12,7 @@ def test_text_pipeline_preserves_original_filename(monkeypatch, tmp_path: Path) 
     monkeypatch.setattr(
         pipeline,
         "analyze",
-        lambda segments, _: MeetingReport(
+        lambda segments, _, report_language: MeetingReport(
             decisions=[Finding(text="Работать локально", evidence=[segments[0].id])]
         ),
     )
@@ -26,6 +26,6 @@ def test_text_pipeline_preserves_original_filename(monkeypatch, tmp_path: Path) 
 
     assert result.metadata.source_filename == "original.txt"
     assert result.metadata.timestamps_precise is False
+    assert result.metadata.report_language == "ru"
     assert result.report.decisions[0].text == "Работать локально"
     assert (settings.meetings_dir / f"{result.metadata.id}.json").exists()
-

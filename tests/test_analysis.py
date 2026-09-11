@@ -50,3 +50,36 @@ def test_analyzer_requests_grounded_structured_output(monkeypatch) -> None:
     assert captured["body"]["model"] == "qwen3:4b"
     assert captured["body"]["keep_alive"] == 0
     assert captured["body"]["format"]["title"] == "MeetingReport"
+    system_prompt = captured["body"]["messages"][0]["content"]
+    assert "every human-readable output value in Russian" in system_prompt
+    assert "Do not switch to English" in system_prompt
+
+
+def test_analyzer_can_request_kazakh(monkeypatch) -> None:
+    captured: dict = {}
+    model_output = {
+        "executive_summary": [],
+        "key_facts": [],
+        "topics": [],
+        "decisions": [],
+        "open_questions": [],
+        "action_items": [],
+        "risks": [],
+    }
+
+    def fake_urlopen(request, timeout):
+        captured["body"] = json.loads(request.data.decode("utf-8"))
+        return FakeResponse({"message": {"content": json.dumps(model_output)}})
+
+    monkeypatch.setattr(analysis.urllib.request, "urlopen", fake_urlopen)
+    transcript = [
+        TranscriptSegment(
+            id="seg_0001", start=0, end=2, speaker="Speaker 1", text="Бастайық."
+        )
+    ]
+
+    analysis.analyze(transcript, Settings(), report_language="kk")
+
+    assert "every human-readable output value in Kazakh" in captured["body"]["messages"][0][
+        "content"
+    ]

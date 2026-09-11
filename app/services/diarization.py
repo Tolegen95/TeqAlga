@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import gc
+import wave
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -16,6 +17,28 @@ class SpeakerTurn:
 
 class DiarizationError(RuntimeError):
     pass
+
+
+def _load_normalized_wav(audio_path: Path, torch: object) -> dict[str, object]:
+    """Load our 16-bit PCM WAV without relying on TorchCodec on Windows."""
+    try:
+        import numpy as np
+
+        with wave.open(str(audio_path), "rb") as stream:
+            channels = stream.getnchannels()
+            sample_width = stream.getsampwidth()
+            sample_rate = stream.getframerate()
+            frames = stream.readframes(stream.getnframes())
+        if sample_width != 2:
+            raise ValueError(f"expected 16-bit PCM, got {sample_width * 8}-bit audio")
+
+        samples = np.frombuffer(frames, dtype="<i2").astype("float32") / 32768.0
+        if channels > 1:
+            samples = samples.reshape(-1, channels).mean(axis=1)
+        waveform = torch.from_numpy(samples).unsqueeze(0)
+        return {"waveform": waveform, "sample_rate": sample_rate}
+    except Exception as exc:
+        raise DiarizationError(f"Cannot load normalized WAV for diarization: {exc}") from exc
 
 
 def diarize(
@@ -44,7 +67,10 @@ def diarize(
             pipeline.to(torch.device("cuda"))
 
         kwargs = {"num_speakers": num_speakers} if num_speakers else {}
-        output = pipeline(str(audio_path), **kwargs)
+        # Passing an in-memory waveform avoids TorchCodec/FFmpeg DLL failures that
+        # are common on Windows. The file has already been normalized to PCM WAV.
+        waveform = _load_normalized_wav(audio_path, torch)
+        output = pipeline(waveform, **kwargs)
         annotation = getattr(output, "exclusive_speaker_diarization", None)
         if annotation is None:
             annotation = getattr(output, "speaker_diarization", output)

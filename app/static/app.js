@@ -166,6 +166,7 @@ function renderMeeting(meeting) {
     <span>${escapeHtml(meeting.metadata.speaker_count)} спикеров</span>
     <span>${timestampsPrecise ? escapeHtml(formatTime(meeting.metadata.duration_seconds)) : "Готовый транскрипт"}</span>
     <span>${escapeHtml(meeting.metadata.language || "Язык не определён")}</span>
+    <span>Отчёт: ${escapeHtml(meeting.metadata.report_language || "ru")}</span>
     <span>${escapeHtml(meeting.metadata.llm_model)}</span>`;
 
   renderFindings("#summary-list", meeting.report.executive_summary);

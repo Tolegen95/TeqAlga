@@ -5,18 +5,34 @@ import urllib.error
 import urllib.request
 
 from app.config import Settings
-from app.models import MeetingReport, TranscriptSegment
+from app.models import MeetingReport, ReportLanguage, TranscriptSegment
 
 
 class AnalysisError(RuntimeError):
     pass
 
 
-SYSTEM_PROMPT = """You are a precise meeting protocol assistant.
+LANGUAGE_NAMES: dict[ReportLanguage, str] = {
+    "ru": "Russian",
+    "kk": "Kazakh",
+    "en": "English",
+    "auto": "the dominant language of the transcript",
+}
+
+
+def _system_prompt(report_language: ReportLanguage) -> str:
+    language = LANGUAGE_NAMES[report_language]
+    return f"""You are a precise meeting protocol assistant.
 Analyze only the supplied transcript. Never invent names, owners, deadlines,
 decisions, risks, or facts. Every output item must reference one or more valid
 segment IDs in its evidence field. If information was not explicitly stated,
-use null or omit the item. Keep the output language consistent with the meeting.
+use null or omit the item.
+
+LANGUAGE REQUIREMENT: Write every human-readable output value in {language}.
+This includes every text, title, summary, owner, task, due_date, and risk value.
+Preserve personal names, product names, evidence IDs, and explicitly spoken dates.
+Do not switch to English merely because the JSON field names are in English.
+
 Return only data matching the provided JSON schema.
 """
 
@@ -35,7 +51,11 @@ def _transcript_payload(segments: list[TranscriptSegment]) -> str:
     return json.dumps(rows, ensure_ascii=False)
 
 
-def analyze(segments: list[TranscriptSegment], settings: Settings) -> MeetingReport:
+def analyze(
+    segments: list[TranscriptSegment],
+    settings: Settings,
+    report_language: ReportLanguage = "ru",
+) -> MeetingReport:
     transcript_json = _transcript_payload(segments)
     if len(transcript_json) > settings.max_transcript_chars:
         raise AnalysisError(
@@ -62,7 +82,7 @@ TRANSCRIPT:
     body = {
         "model": settings.ollama_model,
         "messages": [
-            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "system", "content": _system_prompt(report_language)},
             {"role": "user", "content": prompt},
         ],
         "stream": False,

@@ -13,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import get_settings
 from app.jobs import job_store
-from app.models import JobView, MeetingResult
+from app.models import JobView, MeetingResult, ReportLanguage
 from app.services.audio import AudioPreparationError, ensure_supported
 from app.services.exports import export_result
 from app.services.pipeline import load_meeting, process_meeting
@@ -62,6 +62,7 @@ def _run_job(
     source_filename: str,
     title: str,
     num_speakers: int | None,
+    report_language: ReportLanguage,
 ) -> None:
     try:
         job_store.update(job_id, status="running", progress=1, stage="Запуск")
@@ -74,6 +75,7 @@ def _run_job(
             title,
             settings,
             num_speakers=num_speakers,
+            report_language=report_language,
             source_filename=source_filename,
             progress=update,
         )
@@ -101,6 +103,7 @@ def create_meeting(
     file: Annotated[UploadFile, File()],
     title: Annotated[str, Form()] = "",
     num_speakers: Annotated[int | None, Form(ge=1, le=20)] = None,
+    report_language: Annotated[ReportLanguage, Form()] = "ru",
 ) -> JobView:
     source_filename = Path(file.filename or "meeting").name
     suffix = Path(source_filename).suffix.lower()
@@ -121,6 +124,7 @@ def create_meeting(
         source_filename,
         title or Path(source_filename).stem,
         num_speakers,
+        report_language,
     )
     return job
 

@@ -6,7 +6,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from app.config import Settings
-from app.models import MeetingMetadata, MeetingResult
+from app.models import MeetingMetadata, MeetingResult, ReportLanguage
 from app.services.alignment import assign_speakers
 from app.services.analysis import analyze
 from app.services.audio import AUDIO_EXTENSIONS, normalize_audio
@@ -28,6 +28,7 @@ def process_meeting(
     settings: Settings,
     *,
     num_speakers: int | None = None,
+    report_language: ReportLanguage = "ru",
     source_filename: str | None = None,
     progress: ProgressCallback = _noop_progress,
 ) -> MeetingResult:
@@ -50,7 +51,7 @@ def process_meeting(
         transcript, language, duration = parse_text_transcript(source)
 
     progress(70, "Извлечение решений и поручений")
-    raw_report = analyze(transcript, settings)
+    raw_report = analyze(transcript, settings, report_language=report_language)
     report = sanitize_report(raw_report, transcript)
 
     speakers = {segment.speaker for segment in transcript}
@@ -65,6 +66,7 @@ def process_meeting(
             speaker_count=len(speakers),
             whisper_model=settings.whisper_model,
             llm_model=settings.ollama_model,
+            report_language=report_language,
         ),
         transcript=transcript,
         report=report,

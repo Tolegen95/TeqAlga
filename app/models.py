@@ -5,6 +5,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
 
+ReportLanguage = Literal["ru", "kk", "en", "auto"]
+
 
 class TranscriptSegment(BaseModel):
     id: str
@@ -60,6 +62,7 @@ class MeetingMetadata(BaseModel):
     speaker_count: int = 0
     whisper_model: str
     llm_model: str
+    report_language: ReportLanguage = "ru"
     offline: bool = True
 
 
